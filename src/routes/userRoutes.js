@@ -21,10 +21,12 @@ import {
 import { checkUserAlreadyRegistered } from "../middlewares/avoid_duplicates.js";
 import { validationMiddleware } from "../middlewares/validation_middleware.js";
 import authentication from "../middlewares/auth_middleware.js";
+import upload from "../utils/multer.js";
 const router = express.Router();
 
 router.post(
   "/register",
+  upload.single("profile_image"),
   validationMiddleware(registerUserValidationSchema, (req) => req.body),
   checkUserAlreadyRegistered,
   registerUser

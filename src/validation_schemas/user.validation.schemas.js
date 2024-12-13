@@ -6,6 +6,13 @@ const passwordContainsMixture = (value) => {
   const containsCharacter = /[a-zA-Z]/.test(value);
   return containsNumber && containsCharacter;
 };
+
+const isValidImage = (file) => {
+  if (!file) return true; // If no file is provided, skip the validation
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+  return allowedTypes.includes(file.type);
+};
+
 // Define validation schema for user registration/ These schemas help ensure that incoming data to the API endpoints meets specified criteria
 const registerUserValidationSchema = z.object({
   first_name: z
@@ -23,6 +30,12 @@ const registerUserValidationSchema = z.object({
   password: z.string().trim().min(8).refine(passwordContainsMixture, {
     message: "Password must be a mixture of numbers and characters",
   }),
+  profile_image: z
+    .instanceof(File) // Ensure it's a file object
+    .refine(isValidImage, {
+      message: "Invalid image format. Only JPEG, PNG, and GIF are allowed.",
+    })
+    .optional(),
 });
 // Define validation schema for user Verification
 const verifyUserValidationSchema = z.object({

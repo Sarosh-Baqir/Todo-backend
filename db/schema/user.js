@@ -42,6 +42,9 @@ const userSchema = new mongoose.Schema(
     bio: {
       type: String,
     },
+    image: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

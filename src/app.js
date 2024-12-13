@@ -4,6 +4,7 @@ import connectDB from "../db/database.js";
 import cors from "cors";
 import { SERVER_HOST, SERVER_PORT } from "./utils/constants.js";
 import routes from "../src/routes/index.js";
+import path from "path";
 dotenv.config({ path: ".env" });
 
 const app = express();

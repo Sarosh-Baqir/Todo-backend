@@ -18,6 +18,8 @@ import sendEmail from "../utils/sendEmail.js";
 const registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, phone, password, gender } = req.body;
+    const image = req.file ? req.file.path : null;
+    console.log("image: ", image);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -31,6 +33,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       gender,
       otp,
+      image,
       is_verified: false,
     });
 
@@ -127,12 +130,12 @@ const getOTP = async (req, res) => {
 
     try {
       // Send OTP email
-      // await sendEmail(
-      //   "New OTP Request",
-      //   `Hello ${data.first_name}`,
-      //   `<h1>Hello ${data.first_name} ${data.last_name}</h1><p>You requested a new OTP!</p><p>Your OTP is <strong>${newOtp}</strong>.</p>`,
-      //   data.email
-      // );
+      await sendEmail(
+        "New OTP Request",
+        `Hello ${data.first_name}`,
+        `<h1>Hello ${data.first_name} ${data.last_name}</h1><p>You requested a new OTP!</p><p>Your OTP is <strong>${newOtp}</strong>.</p>`,
+        data.email
+      );
 
       // Update the user's OTP in the database
       data.otp = newOtp;
@@ -193,6 +196,11 @@ const login = async (req, res) => {
     }
 
     const token = await createJWTToken(data.id);
+    // if (data.image) {
+    //   // Construct the correct image URL
+    //   const imagePath = `${data.image.split("\\").pop()}`;
+    //   data.image = imagePath; // Assign the constructed image path to the user object
+    // }
 
     return successResponse(res, "Login Successfully", { data, token });
   } catch (error) {
@@ -218,12 +226,12 @@ const updatePassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     try {
-      // await sendEmail(
-      //   "Password Updated Successfully!",
-      //   `Hello ${user.first_name}`,
-      //   `<h1>Hello ${user.first_name} ${user.last_name}</h1><p>Your password has been updated for ${user.email}!</p>`,
-      //   user.email
-      // );
+      await sendEmail(
+        "Password Updated Successfully!",
+        `Hello ${user.first_name}`,
+        `<h1>Hello ${user.first_name} ${user.last_name}</h1><p>Your password has been updated for ${user.email}!</p>`,
+        user.email
+      );
 
       user.password = hashedPassword;
       await user.save();
