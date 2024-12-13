@@ -14,7 +14,6 @@ const authentication = async (req, res, next) => {
       return unauthorizeResponse(res, "Authentication token is required");
     }
 
-    // Check if the token is blacklisted
     const invalidToken = await BlacklistToken.findOne({ token });
     if (invalidToken) {
       return unauthorizeResponse(res, "Unauthorized! Invalid Token");
@@ -23,7 +22,6 @@ const authentication = async (req, res, next) => {
     let decodedToken;
 
     try {
-      // Verify the token
       decodedToken = verifyToken(token);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
@@ -33,14 +31,12 @@ const authentication = async (req, res, next) => {
       }
     }
 
-    // Check if the user exists
-    const user = await User.findOne({ id: decodedToken.id }).select("id");
+    const user = await User.findById(decodedToken.id);
 
     if (!user) {
       return unauthorizeResponse(res, "Unauthorized! User not found");
     }
 
-    // Attach the logged-in user's ID to the request object
     req.loggedInUserId = user.id;
     next();
   } catch (error) {

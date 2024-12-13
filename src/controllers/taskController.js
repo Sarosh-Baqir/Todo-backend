@@ -1,18 +1,17 @@
 import Task from "../../db/schema/task.js";
-import User from "../../db/schema/user.js";
 import { successResponse, errorResponse } from "../utils/response.handle.js";
 
 // API to create a new task
 const createTask = async (req, res) => {
   try {
-    const { title, description, due_date, priority, status } = req.body;
+    const { title, description, dueDate, priority, status } = req.body;
     const userId = req.loggedInUserId;
+    console.log(dueDate);
 
-    // Create a new task
     const newTask = await Task.create({
       title,
       description,
-      due_date,
+      due_date: dueDate,
       priority,
       status,
       userId,
@@ -29,7 +28,6 @@ const getTasksByUser = async (req, res) => {
   try {
     const userId = req.loggedInUserId;
 
-    // Find tasks by userId
     const tasks = await Task.find({ userId });
 
     if (!tasks || tasks.length === 0) {
@@ -47,8 +45,7 @@ const getTaskById = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    // Find task by taskId
-    const task = await Task.findOne({ id: taskId });
+    const task = await Task.findById(taskId);
     if (!task) {
       return errorResponse(res, "Task not found", 404);
     }
@@ -62,12 +59,12 @@ const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { title, description, due_date, priority, status } = req.body;
-    console.log(taskId);
-    // Find task by custom `id` field and update it
-    const updatedTask = await Task.findOneAndUpdate(
-      { id: taskId }, // Query using the `id` field, not `_id`
+    console.log("update controller");
+
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
       { title, description, due_date, priority, status },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedTask) {
@@ -85,8 +82,7 @@ const deleteTask = async (req, res) => {
   try {
     const { taskId } = req.params;
 
-    // Find task by custom `id` field and delete it
-    const deletedTask = await Task.findOneAndDelete({ id: taskId });
+    const deletedTask = await Task.findByIdAndDelete(taskId);
     if (!deletedTask) {
       return errorResponse(res, "Task not found", 404);
     }

@@ -5,7 +5,7 @@ const createTaskValidationSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
   description: z.string().trim().optional(),
   dueDate: z.string().datetime().optional(),
-  priority: z.enum(["low", "medium", "high"]).optional(),
+  priority: z.enum(["low", "moderate", "extreme"]).optional(),
   status: z.enum(["pending", "completed"]).default("pending"),
 });
 
@@ -14,7 +14,7 @@ const updateTaskValidationSchema = z.object({
   title: z.string().trim().min(1, "Title is required").optional(),
   description: z.string().trim().optional(),
   dueDate: z.string().datetime().optional(),
-  priority: z.enum(["low", "medium", "high"]).optional(),
+  priority: z.enum(["low", "moderate", "extreme"]).optional(),
   status: z.enum(["pending", "completed"]).optional(),
 });
 

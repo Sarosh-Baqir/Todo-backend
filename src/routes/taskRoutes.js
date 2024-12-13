@@ -15,7 +15,6 @@ import authentication from "../middlewares/auth_middleware.js";
 
 const router = express.Router();
 
-// Route to create a task
 router.post(
   "/create",
   authentication,
@@ -23,7 +22,6 @@ router.post(
   createTask
 );
 
-// Route to update a task
 router.put(
   "/update/:taskId",
   authentication,
@@ -34,13 +32,10 @@ router.put(
   updateTask
 );
 
-// Route to get a task by ID
 router.get("/:taskId", authentication, getTaskById);
 
-// Route to get all tasks
 router.get("/", authentication, getTasksByUser);
 
-// Route to delete a task
 router.delete("/delete/:taskId", authentication, deleteTask);
 
 export default router;

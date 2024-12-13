@@ -19,13 +19,10 @@ const registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, phone, password, gender } = req.body;
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
     const otp = createOTP();
 
-    // Create the new user using User.create()
     const newUser = await User.create({
       first_name,
       last_name,
@@ -37,7 +34,6 @@ const registerUser = async (req, res) => {
       is_verified: false,
     });
 
-    // Send an email with the OTP
     try {
       await sendEmail(
         "Registration Request",
@@ -51,12 +47,13 @@ const registerUser = async (req, res) => {
       return successResponse(
         res,
         "User Registered Successfully! An email has been sent with OTP to your provided email.",
-        { userId: newUser.id }
+        { user: newUser }
       );
     } catch (emailError) {
       return errorResponse(
         res,
         `User created but error in sending email = ${emailError.message}`,
+
         400
       );
     }
@@ -70,44 +67,44 @@ const verifyUser = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email });
 
     if (!user) {
       return errorResponse(res, "User Not Found", 404);
     }
 
-    // Check if the user is already verified
     if (user.is_verified) {
       return errorResponse(res, "User is Already Verified", 400);
     }
 
-    // Validate OTP
     if (otp !== user.otp) {
       return errorResponse(res, "Invalid OTP!", 400);
     }
 
     try {
-      // Send email to the user
+      try {
+        user.is_verified = true;
+        user.otp = null;
+
+        await user.save();
+      } catch (error) {
+        return errorResponse(
+          res,
+          `Error in verifying user = ${error.message}`,
+          400
+        );
+      }
       await sendEmail(
         "Account Verification",
         `Hello ${user.first_name}`,
         `<h1>Hello ${user.first_name} ${user.last_name}</h1><h3>Hurray! Congratulations.</h3><p>Your account has been verified. Now you can login to the system.</p>`,
         user.email
       );
-
-      // Update user document to set is_verified to true and clear OTP
-      user.is_verified = true;
-      user.otp = null;
-
-      // Save the updated user document
-      await user.save();
-
-      return successResponse(res, "User verified successfully!", user.email);
+      return successResponse(res, "User verified successfully!", user);
     } catch (error) {
       return errorResponse(
         res,
-        `Error in sending email = ${error.message}`,
+        `Error in sending email = ${error.message} but user is verified`,
         400
       );
     }
@@ -121,7 +118,6 @@ const getOTP = async (req, res) => {
   try {
     const { email } = req.params;
 
-    // Find the user by email
     const data = await User.findOne({ email: email });
     if (!data) {
       return errorResponse(res, "User Not Found", 404);
@@ -159,18 +155,15 @@ const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    // Find the user by email
     const data = await User.findOne({ email: email });
     if (!data) {
       return errorResponse(res, "User Not Found", 404);
     }
 
-    // Check if the OTP matches
     if (otp !== data.otp) {
       return errorResponse(res, "Invalid OTP", 400);
     }
 
-    // Clear the OTP once it's verified
     data.otp = null;
     await data.save();
 
@@ -185,26 +178,21 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find the user by email
     const data = await User.findOne({ email: email });
     if (!data) {
       return unauthorizeResponse(res, "User not Registered!");
     }
 
-    // Check if the user is verified
     if (!data.is_verified) {
       return errorResponse(res, "User not verified", 403);
     }
 
-    // Compare the provided password with the hashed password in the database
     const isPasswordValid = await bcrypt.compare(password, data.password);
     if (!isPasswordValid) {
       return unauthorizeResponse(res, "Credentials are Wrong!");
     }
 
-    // Create a JWT token
     const token = await createJWTToken(data.id);
-    console.log("in login: ", token);
 
     return successResponse(res, "Login Successfully", { data, token });
   } catch (error) {
@@ -216,7 +204,7 @@ const updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
 
-    const user = await User.findOne({ id: req.loggedInUserId });
+    const user = await User.findById(req.loggedInUserId);
 
     if (!user) {
       return errorResponse(res, "User not found!", 404);
@@ -296,7 +284,7 @@ const resetPassword = async (req, res) => {
       );
 
       user.password = hashedPassword;
-      user.otp = null; // Clear OTP after successful reset
+      user.otp = null;
       await user.save();
 
       return successResponse(res, "Password reset successfully.");

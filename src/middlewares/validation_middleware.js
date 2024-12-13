@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { errorResponse } from "../utils/response.handle.js";
 
-// Middleware function to validate user registration request/ validate incoming request parameters against zod schema
 const validationMiddleware = (schema, parseParam) => {
   return (req, res, next) => {
     try {
