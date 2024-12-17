@@ -5,10 +5,16 @@ import cors from "cors";
 import { SERVER_HOST, SERVER_PORT } from "./utils/constants.js";
 import routes from "../src/routes/index.js";
 import path from "path";
+import { fileURLToPath } from "url";
 dotenv.config({ path: ".env" });
 
 const app = express();
 app.use(cors());
+
+const __filename = fileURLToPath(import.meta.url);
+const _dirname = path.dirname(__filename);
+
+app.use("/uploads", express.static(path.join(_dirname, "public/uploads")));
 
 app.use(express.static("public"));
 app.use(express.json());

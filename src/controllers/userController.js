@@ -18,7 +18,7 @@ import sendEmail from "../utils/sendEmail.js";
 const registerUser = async (req, res) => {
   try {
     const { first_name, last_name, email, phone, password, gender } = req.body;
-    const image = req.file ? req.file.path : null;
+    const image = req.file ? `uploads/${req.file.filename}` : null;
     console.log("image: ", image);
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -196,11 +196,6 @@ const login = async (req, res) => {
     }
 
     const token = await createJWTToken(data.id);
-    // if (data.image) {
-    //   // Construct the correct image URL
-    //   const imagePath = `${data.image.split("\\").pop()}`;
-    //   data.image = imagePath; // Assign the constructed image path to the user object
-    // }
 
     return successResponse(res, "Login Successfully", { data, token });
   } catch (error) {

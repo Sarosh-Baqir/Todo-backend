@@ -3,12 +3,11 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
-// Resolve the current directory using import.meta.url
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const _dirname = path.dirname(__filename);
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, "uploads");
+const uploadsDir = path.join(_dirname, "../public/uploads");
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
   console.log("Uploads directory created!");
@@ -16,17 +15,15 @@ if (!fs.existsSync(uploadsDir)) {
   console.log("Uploads directory already exists!");
 }
 
-// Configure multer storage (where to store the uploaded files)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir); // Directory where files will be saved
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}_${file.originalname}`);
+    cb(null, `${Date.now()}_${file.originalname}`); // Corrected string interpolation
   },
 });
 
-// Set up file filter to only accept images
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
   if (allowedTypes.includes(file.mimetype)) {
@@ -39,6 +36,5 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer instance with storage and file filter
 const upload = multer({ storage, fileFilter });
 export default upload;
